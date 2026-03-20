@@ -7,13 +7,13 @@ Register with your [@corporate.com](https://accounts.skilljar.com/accounts/signu
 
 ## Foundations & Domain Overview
 
-| Domain | Weight | Focus | Files                                                      |
-|--------|--------|-------|------------------------------------------------------------|
-| **Agentic Architecture & Orchestration** | 27% | Agent loops, multi-agent patterns, error handling | [see](./domains/01-agentic-architecture-orchestration.md)  |
-| **Tool Design & MCP Integration** | 18% | Tool definitions, JSON schemas, MCP servers | [see](./domains02-tool-design-mcp-integration.md)          |
-| **Claude Code Configuration & Workflows** | 20% | CLAUDE.md, skills, planning mode | [see](./domains03-claude-code-configuration.md)            |
-| **Prompt Engineering & Structured Output** | 20% | Few-shot prompting, validation loops, batch API | [see](./domains04-prompt-engineering-structured-output.md) |
-| **Context Management & Reliability** | 15% | Context windows, provenance, crash recovery | [see](./domains05-context-management-reliability.md)       |
+| Domain | Weight | Focus | Files                                                       |
+|--------|--------|-------|-------------------------------------------------------------|
+| **Agentic Architecture & Orchestration** | 27% | Agent loops, multi-agent patterns, error handling | [see](./domains/01-agentic-architecture-orchestration.md)   |
+| **Tool Design & MCP Integration** | 18% | Tool definitions, JSON schemas, MCP servers | [see](./domains/02-tool-design-mcp-integration.md)          |
+| **Claude Code Configuration & Workflows** | 20% | CLAUDE.md, skills, planning mode | [see](./domains/03-claude-code-configuration.md)            |
+| **Prompt Engineering & Structured Output** | 20% | Few-shot prompting, validation loops, batch API | [see](./domains/04-prompt-engineering-structured-output.md) |
+| **Context Management & Reliability** | 15% | Context windows, provenance, crash recovery | [see](./domains/05-context-management-reliability.md)       |
 
 
 ## Anthropic useful courses 
