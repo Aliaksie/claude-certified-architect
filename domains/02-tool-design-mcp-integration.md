@@ -119,6 +119,26 @@ Using `tool_use` with JSON schemas is the **most reliable** way to obtain struct
 | **Syntax** | Invalid JSON, wrong field type | `tool_use` with a JSON schema (eliminates) |
 | **Semantic** | Totals don't add up, value in wrong field, hallucination | Validation checks, retry with feedback, self-correction |
 
+### 1.6 Schema Patterns for Better Extraction Reliability
+
+For production extraction schemas, prefer patterns that reduce forced fabrication:
+
+- Use empty arrays as valid values when a list field has no explicit evidence (`pros: []`, `cons: []`)
+- Add `unclear` enum options for ambiguous classification outcomes
+- Keep fields nullable when the source may omit them
+- Pair required fields with explicit prompt rule: "return null/empty when not stated"
+
+This keeps structured outputs honest under sparse or sarcastic source content.
+
+### 1.7 Enforcing Tool Calls for Guaranteed Structured Output
+
+If the model must return a tool call (not free text), use:
+
+- `tool_choice: {"type": "any"}` when multiple tools are valid and document type is unknown
+- `tool_choice: {"type": "tool", "name": "..."}` when one specific first action is mandatory
+
+Relying on prompt-only instructions with `auto` is not sufficient for strict downstream parsers.
+
 ---
 
 ## 2. Model Context Protocol (MCP)
@@ -220,6 +240,14 @@ Resources are data that an agent can request to get context without taking actio
 
 **Resource advantage:** the agent does not need exploratory tool calls to understand what data exists. A resource provides an immediate "map."
 
+### 2.6 Trust Model for MCP Tool Annotations
+
+MCP annotations (for example, read-only/destructive hints) are advisory metadata from the server. Treat them as untrusted unless the server is trusted.
+
+Operational rule:
+- Trust decision is based on server/vendor trustworthiness and your security controls
+- Do not bypass confirmations solely on self-declared annotations from unknown vendors
+
 ---
 
 ## 3. Claude API Fundamentals for Tool Integration
@@ -273,6 +301,61 @@ The Claude API response includes `stop_reason`, which indicates why the model st
 
 For agentic systems, `"tool_use"` and `"end_turn"` are the most important—they control the agent loop.
 
+
+## 4. Advanced Tool Interface Design Patterns
+
+### 4.1 Return Machine-Actionable Results (Not Prose)
+
+Design tool outputs as structured objects with stable identifiers so agents can chain actions:
+
+- Search tools should return IDs plus metadata (not only human-readable titles)
+- Include explicit status fields (`success`, `results`, optional `error` object)
+- Reserve `isError: true` for true execution failures, not valid empty-result outcomes
+
+### 4.2 Pagination for Latency Control
+
+For large result sets, return:
+
+- first page of items
+- total count
+- continuation cursor/token
+
+Avoid auto-fetching all pages inside one tool call when it causes long tail latency.
+
+### 4.3 Prefer Canonical IDs Over Ambiguous Parameters
+
+If users or models can express the same entity in many forms (nicknames, dates, aliases), use a two-step pattern:
+
+1. lookup/search tool returns canonical IDs
+2. action tool accepts only canonical ID
+
+This sharply reduces wrong-entity updates.
+
+### 4.4 Split Tools by Behavioral Shape
+
+When one tool allows many invalid parameter combinations, split it into semantically narrow tools with constrained inputs. Narrow interfaces reduce model error rates better than broad schemas with many soft rules.
+
+### 4.5 Atomic Composite Tools for Race-Prone Sequences
+
+If a two-step workflow has concurrency race windows (check-then-act), replace with one atomic composite tool that executes server-side in a single transaction.
+
+### 4.6 Composite-Then-Selective Pattern
+
+When workflow has expensive repeated substeps:
+
+- combine discovery + analysis into one composite tool
+- keep final irreversible action separate so the model still applies judgment before commit
+
+### 4.7 Progressive Tool Exposure for Large Connector Sets
+
+For environments with many connectors, start with a small discovery tool and expose matching connectors dynamically after discovery. This improves tool selection accuracy by reducing initial choice overload.
+
+### 4.8 Confirmation-Critical Parameters for Risky Actions
+
+For high-impact operations, require an explicit acknowledgement parameter that should be set only after user confirmation of details.
+
+This pattern lowers accidental execution when users ask follow-up questions without intending to approve.
+
 ---
 
 ## Key Takeaways
@@ -297,4 +380,3 @@ For agentic systems, `"tool_use"` and `"end_turn"` are the most important—they
 - [ ] Testing strategies for tools and MCP servers
 - [ ] Tool naming conventions and categorization patterns
 - [ ] Resource caching and invalidation strategies
-

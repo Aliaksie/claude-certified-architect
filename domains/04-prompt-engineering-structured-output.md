@@ -99,6 +99,27 @@ Normalization:
 
 This prevents semantic errors where the JSON is syntactically valid but values are inconsistent.
 
+### 1.4 Extraction Constraints That Reduce Hallucinations
+
+For extraction tasks, add explicit constraints in the prompt so the model has clear boundaries:
+
+- Extract only explicitly stated values (no inference from related context)
+- Return `null` (or empty array) when data is not present
+- Use one item per array entry; avoid bundling compound values in a single element
+- Define practical cardinality limits when needed (for example, `skills` max range)
+
+These constraints are often more effective than vague instructions like "extract all relevant data".
+
+### 1.5 Handling Ambiguity and Conflicts During Extraction
+
+When source data is ambiguous or conflicting, define a deterministic policy in the prompt:
+
+- If sentiment or classification is unclear, choose `unclear` rather than forcing a guess
+- If multiple conflicting values exist, prefer a trusted source section (for example: detailed spec table over summary)
+- Preserve uncertain phrasing verbatim for informal quantities instead of normalizing to fabricated precision
+
+Exam pattern: deterministic precedence rules + explicit uncertainty labels reduce silent semantic drift.
+
 ---
 
 ## 2. Explicit Criteria vs Vague Instructions
@@ -229,6 +250,16 @@ Pydantic is a Python library for schema-based data validation. For the exam, the
 - **Validate–retry loops:** on Pydantic validation failure, construct an error message and re-prompt Claude with the error context
 - **JSON Schema generation:** Pydantic models can generate JSON Schema for `tool_use`, providing a single source of truth
 
+### 5.5 Retry Strategy: Correctable vs Unrecoverable Failures
+
+Not all validation failures benefit from retries. Use this decision rule:
+
+- Retry with error feedback when the source contains the needed data and the failure is formatting/placement/calculation
+- Do not repeatedly retry when required information is absent from provided inputs
+- For non-recoverable failures, return partial output with coverage notes or escalate
+
+This avoids wasted turns and improves throughput in production pipelines.
+
 ---
 
 ## 6. Self-correction
@@ -310,6 +341,16 @@ If you need a result in 30 hours and the Batch API can take up to 24 hours:
 - Submission window: 30 - 24 = **6 hours**
 - Batches must be submitted no later than 24 hours before the deadline
 - For frequent submissions, split into 4-hour windows
+
+### 7.6 Batch Submission Cadence for SLA Compliance
+
+To satisfy a downstream deadline, account for both collection interval and maximum batch processing time.
+
+Simple formula:
+
+`worst_case_latency = batch_interval + max_batch_processing_time`
+
+Choose a submission interval that keeps worst-case latency inside your SLA margin. In practice, this often means sending multiple batches per day instead of one end-of-day batch.
 
 ---
 
